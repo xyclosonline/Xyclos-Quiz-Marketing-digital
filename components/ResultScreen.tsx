@@ -48,10 +48,12 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ score, total, user, 
 
   const handleShare = async () => {
     const text = `He obtenido ${score}/${total} en el Quiz Estratégico de Marketing Digital.`;
-    // Type-safe check for navigator.share
-    if (typeof navigator.share === 'function') {
+    // FIX: Cast navigator to any to avoid TypeScript 'property does not exist' build error
+    const nav = navigator as any;
+    
+    if (nav.share) {
       try {
-        await navigator.share({
+        await nav.share({
           title: 'Quiz de Marketing Digital',
           text: text,
           url: window.location.href,
