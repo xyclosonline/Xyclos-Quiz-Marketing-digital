@@ -3,7 +3,7 @@ import { Question } from './types';
 // ---------------------------------------------------------------------------
 // CONFIGURACIÓN DE GOOGLE SHEETS
 // ---------------------------------------------------------------------------
-export const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxqN8voCOJZj3VfFy36ocp68W21MiB5u9jA1mfMS5fAl_Tm7T3YpamSZ2xEQyZplsI/exec";
+export const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzJb-ks0db0SXO3JnUcY9spaIGOh720P5K5cdOYfdtKJtfieI4WZ4dlL7mhC9tFjVvO/exec";
 
 /*
   -------------------------------------------------------------------------
