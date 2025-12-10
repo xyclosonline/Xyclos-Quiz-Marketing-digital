@@ -3,51 +3,58 @@ import { Question } from './types';
 // ---------------------------------------------------------------------------
 // CONFIGURACIÓN DE GOOGLE SHEETS
 // ---------------------------------------------------------------------------
+// REVISA SI ESTA URL ES IGUAL A LA DE TU IMPLEMENTACIÓN ACTUAL EN GOOGLE APPS SCRIPT
 export const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzJb-ks0db0SXO3JnUcY9spaIGOh720P5K5cdOYfdtKJtfieI4WZ4dlL7mhC9tFjVvO/exec";
 
 /*
   -------------------------------------------------------------------------
-  INSTRUCCIONES PARA GOOGLE APPS SCRIPT (ACTUALIZADO)
+  INSTRUCCIONES PARA GOOGLE APPS SCRIPT (VERSIÓN FINAL ROBUSTA)
   -------------------------------------------------------------------------
-  Copia y pega este código EXACTO en tu editor de Google Apps Script.
-  Este código usa e.parameter, que es más robusto que JSON.
+  1. Borra todo el código en tu editor de Google Apps Script.
+  2. Pega este código nuevo:
 
   function doPost(e) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     
-    // 1. OBTENER DATOS (Formato Formulario)
-    var params = e.parameter;
+    // 1. LEER DATOS (Modo Texto Plano -> JSON)
+    // Como enviamos text/plain para evitar CORS, Google lo recibe en postData.contents
+    var data = JSON.parse(e.postData.contents);
     
-    var date = params.date;
-    var firstName = params.firstName;
-    var lastName = params.lastName;
-    var email = params.email;
-    var score = params.score;
-    var total = params.total;
-
     // 2. GUARDAR EN SHEETS
-    sheet.appendRow([date, firstName, lastName, email, score, total]);
+    sheet.appendRow([
+      data.date, 
+      data.firstName, 
+      data.lastName, 
+      data.email, 
+      data.score, 
+      data.total
+    ]);
     
     // 3. ENVIAR CORREO
     try {
       MailApp.sendEmail({
-        to: email,
+        to: data.email,
         subject: "Resultados: Evaluación Estratégica de Marketing Digital",
-        body: "Hola " + firstName + ",\n\n" +
+        body: "Hola " + data.firstName + ",\n\n" +
               "Gracias por realizar la evaluación.\n" +
-              "Tu resultado: " + score + " de " + total + " aciertos.\n\n" +
+              "Tu resultado: " + data.score + " de " + data.total + " aciertos.\n\n" +
               "Atentamente,\nEquipo Xyclos"
       });
-    } catch (error) {
-      console.log("Error mail: " + error);
+    } catch (err) {
+      // Si falla el correo, continuamos para no perder el registro
     }
-
-    return ContentService.createTextOutput("Recibido").setMimeType(ContentService.MimeType.TEXT);
+    
+    return ContentService.createTextOutput("OK").setMimeType(ContentService.MimeType.TEXT);
   }
 
-  IMPORTANTE:
-  Después de pegar esto en Google, debes ir a:
-  Implementar > Gestionar implementaciones > Editar > Versión: "Nueva versión" > Implementar.
+  -------------------------------------------------------------------------
+  PASOS DE IMPLEMENTACIÓN (¡CRUCIAL!):
+  1. Dale al botón azul "Implementar" (arriba a la derecha).
+  2. Selecciona "Gestionar implementaciones".
+  3. Dale al icono de "Editar" (lápiz) en tu implementación activa.
+  4. En Versión, selecciona "Nueva versión".
+  5. Asegúrate de que "Quién tiene acceso" sea "Cualquiera".
+  6. Dale a "Implementar".
   -------------------------------------------------------------------------
 */
 
