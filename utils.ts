@@ -24,8 +24,8 @@ export const isValidEmail = (email: string): boolean => {
 
 /**
  * Sends quiz results to a Google Sheet via a Web App URL.
- * Uses 'no-cors' mode to avoid browser restrictions, so we cannot read the response,
- * but the request will succeed if the server is set up correctly.
+ * Uses URLSearchParams (application/x-www-form-urlencoded) which is handled 
+ * much better by Google Apps Script than JSON payloads in 'no-cors' mode.
  */
 export const sendResultsToGoogleSheets = async (
   user: UserProfile, 
@@ -43,25 +43,23 @@ export const sendResultsToGoogleSheets = async (
     timeStyle: 'medium' 
   });
 
-  const payload = {
-    date: timestamp,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    score: score,
-    total: total
-  };
+  // Convert data to URL Encoded Form Data
+  const formData = new URLSearchParams();
+  formData.append('date', timestamp);
+  formData.append('firstName', user.firstName);
+  formData.append('lastName', user.lastName);
+  formData.append('email', user.email);
+  formData.append('score', score.toString());
+  formData.append('total', total.toString());
 
   try {
-    // We use text/plain to avoid CORS preflight checks in some browsers for simple requests,
-    // though 'no-cors' is the main driver here.
     await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
       method: 'POST',
       mode: 'no-cors', 
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8', 
+        'Content-Type': 'application/x-www-form-urlencoded', 
       },
-      body: JSON.stringify(payload)
+      body: formData.toString()
     });
     console.log('Data sent to Google Sheets');
   } catch (error) {

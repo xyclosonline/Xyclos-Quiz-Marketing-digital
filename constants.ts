@@ -5,6 +5,52 @@ import { Question } from './types';
 // ---------------------------------------------------------------------------
 export const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxqN8voCOJZj3VfFy36ocp68W21MiB5u9jA1mfMS5fAl_Tm7T3YpamSZ2xEQyZplsI/exec";
 
+/*
+  -------------------------------------------------------------------------
+  INSTRUCCIONES PARA GOOGLE APPS SCRIPT (ACTUALIZADO)
+  -------------------------------------------------------------------------
+  Copia y pega este código EXACTO en tu editor de Google Apps Script.
+  Este código usa e.parameter, que es más robusto que JSON.
+
+  function doPost(e) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    
+    // 1. OBTENER DATOS (Formato Formulario)
+    var params = e.parameter;
+    
+    var date = params.date;
+    var firstName = params.firstName;
+    var lastName = params.lastName;
+    var email = params.email;
+    var score = params.score;
+    var total = params.total;
+
+    // 2. GUARDAR EN SHEETS
+    sheet.appendRow([date, firstName, lastName, email, score, total]);
+    
+    // 3. ENVIAR CORREO
+    try {
+      MailApp.sendEmail({
+        to: email,
+        subject: "Resultados: Evaluación Estratégica de Marketing Digital",
+        body: "Hola " + firstName + ",\n\n" +
+              "Gracias por realizar la evaluación.\n" +
+              "Tu resultado: " + score + " de " + total + " aciertos.\n\n" +
+              "Atentamente,\nEquipo Xyclos"
+      });
+    } catch (error) {
+      console.log("Error mail: " + error);
+    }
+
+    return ContentService.createTextOutput("Recibido").setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  IMPORTANTE:
+  Después de pegar esto en Google, debes ir a:
+  Implementar > Gestionar implementaciones > Editar > Versión: "Nueva versión" > Implementar.
+  -------------------------------------------------------------------------
+*/
+
 // Based on the provided text about Sales Funnels and Digital Marketing Campaigns.
 export const QUESTION_POOL: Question[] = [
   {
