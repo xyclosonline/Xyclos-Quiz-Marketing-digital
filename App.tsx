@@ -11,12 +11,19 @@ const App: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [score, setScore] = useState(0);
+  
+  // Track IDs of questions already asked in this session to avoid immediate repeats
+  const [seenQuestionIds, setSeenQuestionIds] = useState<number[]>([]);
 
   // Initialize questions
   const startQuiz = (userData: UserProfile) => {
     setUser(userData);
-    const randomQuestions = getRandomQuestions(QUESTION_POOL, 5);
-    setQuestions(randomQuestions);
+    
+    // First run: exclude nothing, but initialize the seen list
+    const initialQuestions = getRandomQuestions(QUESTION_POOL, 5, []);
+    
+    setQuestions(initialQuestions);
+    setSeenQuestionIds(initialQuestions.map(q => q.id));
     setAppState(AppState.QUIZ);
     setScore(0);
   };
@@ -27,8 +34,24 @@ const App: React.FC = () => {
   };
 
   const handleRetry = () => {
-    // Re-shuffle new questions on retry
-    const randomQuestions = getRandomQuestions(QUESTION_POOL, 5);
+    // Retry: Pass the list of already seen IDs to exclude them
+    const randomQuestions = getRandomQuestions(QUESTION_POOL, 5, seenQuestionIds);
+    
+    // If the randomQuestions returned overlap (because pool reset), we reset our seen list
+    // Otherwise, we append the new ones to the history
+    const newIds = randomQuestions.map(q => q.id);
+    
+    // Check if we did a hard reset (detected if new questions exist in seen list)
+    const hasOverlap = newIds.some(id => seenQuestionIds.includes(id));
+    
+    if (hasOverlap) {
+        // Pool was exhausted and reset, start fresh history
+        setSeenQuestionIds(newIds);
+    } else {
+        // Append new questions to history
+        setSeenQuestionIds(prev => [...prev, ...newIds]);
+    }
+
     setQuestions(randomQuestions);
     setScore(0);
     setAppState(AppState.QUIZ);

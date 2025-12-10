@@ -13,7 +13,7 @@ export const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKf
   Esta versión usa el método de "Formulario Estándar" que es el más robusto.
   
   1. Borra todo el código en tu editor de Google Apps Script.
-  2. Pega este código nuevo:
+  2. Pega este código nuevo (Actualizado con firma Xyclos Academy):
 
   function doPost(e) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -40,7 +40,7 @@ export const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKf
         body: "Hola " + p.firstName + ",\n\n" +
               "Gracias por realizar la evaluación.\n" +
               "Tu resultado: " + p.score + " de " + p.total + " aciertos.\n\n" +
-              "Atentamente,\nEquipo Xyclos"
+              "Atentamente,\nEquipo Xyclos Academy\nhttps://www.xyclos.academy"
       });
     } catch (err) {
       // Si falla el correo, continuamos para no perder el registro

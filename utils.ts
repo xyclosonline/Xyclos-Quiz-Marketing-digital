@@ -2,19 +2,45 @@ import { Question, UserProfile } from './types';
 import { GOOGLE_SHEETS_WEBHOOK_URL } from './constants';
 
 /**
- * Shuffles an array of questions and returns a subset.
- * Uses the Fisher-Yates shuffle algorithm.
+ * Función auxiliar para mezclar arrays (Fisher-Yates)
  */
-export const getRandomQuestions = (allQuestions: Question[], count: number): Question[] => {
-  // Create a copy to avoid mutating the original array
-  const shuffled = [...allQuestions];
-  
+const shuffleArray = <T>(array: T[]): T[] => {
+  const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
+  return shuffled;
+};
+
+/**
+ * Obtiene preguntas aleatorias priorizando las que NO están en excludeIds.
+ * Si se acaban las nuevas, rellena con las antiguas.
+ */
+export const getRandomQuestions = (
+  allQuestions: Question[], 
+  count: number, 
+  excludeIds: number[] = []
+): Question[] => {
+  // 1. Separar preguntas nuevas (no vistas) de las usadas
+  const freshQuestions = allQuestions.filter(q => !excludeIds.includes(q.id));
+  const usedQuestions = allQuestions.filter(q => excludeIds.includes(q.id));
+
+  // 2. Mezclar ambas listas
+  const shuffledFresh = shuffleArray(freshQuestions);
   
-  return shuffled.slice(0, count);
+  // 3. Caso ideal: Tenemos suficientes preguntas nuevas
+  if (shuffledFresh.length >= count) {
+    return shuffledFresh.slice(0, count);
+  }
+
+  // 4. Caso borde: No alcanzan las nuevas. 
+  // Tomamos TODAS las nuevas disponibles y rellenamos el resto con usadas (mezcladas)
+  const neededFromUsed = count - shuffledFresh.length;
+  const shuffledUsed = shuffleArray(usedQuestions);
+  
+  // Combinamos: Nuevas primero + Relleno de usadas
+  return [...shuffledFresh, ...shuffledUsed.slice(0, neededFromUsed)];
 };
 
 export const isValidEmail = (email: string): boolean => {
@@ -24,9 +50,6 @@ export const isValidEmail = (email: string): boolean => {
 
 /**
  * Sends quiz results to a Google Sheet via a Web App URL.
- * METHOD: 'application/x-www-form-urlencoded' (Standard Form Post).
- * This mimics a real HTML form submission, which Google Apps Script handles
- * natively and robustly without CORS preflight blocking.
  */
 export const sendResultsToGoogleSheets = async (
   user: UserProfile, 
