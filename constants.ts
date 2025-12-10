@@ -8,36 +8,38 @@ export const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKf
 
 /*
   -------------------------------------------------------------------------
-  INSTRUCCIONES PARA GOOGLE APPS SCRIPT (VERSIÓN FINAL ROBUSTA)
+  INSTRUCCIONES PARA GOOGLE APPS SCRIPT (VERSIÓN DEFINITIVA - FORM DATA)
   -------------------------------------------------------------------------
+  Esta versión usa el método de "Formulario Estándar" que es el más robusto.
+  
   1. Borra todo el código en tu editor de Google Apps Script.
   2. Pega este código nuevo:
 
   function doPost(e) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     
-    // 1. LEER DATOS (Modo Texto Plano -> JSON)
-    // Como enviamos text/plain para evitar CORS, Google lo recibe en postData.contents
-    var data = JSON.parse(e.postData.contents);
+    // 1. LEER DATOS (Modo Formulario Estándar)
+    // Al recibir x-www-form-urlencoded, Google pone los datos en e.parameter
+    var p = e.parameter;
     
     // 2. GUARDAR EN SHEETS
     sheet.appendRow([
-      data.date, 
-      data.firstName, 
-      data.lastName, 
-      data.email, 
-      data.score, 
-      data.total
+      p.date, 
+      p.firstName, 
+      p.lastName, 
+      p.email, 
+      p.score, 
+      p.total
     ]);
     
     // 3. ENVIAR CORREO
     try {
       MailApp.sendEmail({
-        to: data.email,
+        to: p.email,
         subject: "Resultados: Evaluación Estratégica de Marketing Digital",
-        body: "Hola " + data.firstName + ",\n\n" +
+        body: "Hola " + p.firstName + ",\n\n" +
               "Gracias por realizar la evaluación.\n" +
-              "Tu resultado: " + data.score + " de " + data.total + " aciertos.\n\n" +
+              "Tu resultado: " + p.score + " de " + p.total + " aciertos.\n\n" +
               "Atentamente,\nEquipo Xyclos"
       });
     } catch (err) {

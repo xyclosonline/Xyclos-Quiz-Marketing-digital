@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { UserProfile } from '../types';
-import { RefreshCw, Award, BookOpen, CloudUpload, Check, Share2 } from 'lucide-react';
+import { RefreshCw, BookOpen, CloudUpload, Check, Share2 } from 'lucide-react';
 import { sendResultsToGoogleSheets } from '../utils';
 import { GOOGLE_SHEETS_WEBHOOK_URL } from '../constants';
 
@@ -34,19 +34,22 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ score, total, user, 
   }
 
   useEffect(() => {
+    let isMounted = true;
     const saveData = async () => {
       if (GOOGLE_SHEETS_WEBHOOK_URL) {
-        setSaveStatus('saving');
+        if (isMounted) setSaveStatus('saving');
         await sendResultsToGoogleSheets(user, score, total);
-        setSaveStatus('saved');
+        if (isMounted) setSaveStatus('saved');
       }
     };
     saveData();
+    return () => { isMounted = false; };
   }, [user, score, total]);
 
   const handleShare = async () => {
     const text = `He obtenido ${score}/${total} en el Quiz Estratégico de Marketing Digital.`;
-    if (navigator.share) {
+    // Type-safe check for navigator.share
+    if (typeof navigator.share === 'function') {
       try {
         await navigator.share({
           title: 'Quiz de Marketing Digital',

@@ -24,9 +24,9 @@ export const isValidEmail = (email: string): boolean => {
 
 /**
  * Sends quiz results to a Google Sheet via a Web App URL.
- * METHOD: 'text/plain' payload with 'no-cors'.
- * This trick bypasses the CORS Preflight (OPTIONS request) which Google Scripts
- * does not support, allowing the POST to go through successfully.
+ * METHOD: 'application/x-www-form-urlencoded' (Standard Form Post).
+ * This mimics a real HTML form submission, which Google Apps Script handles
+ * natively and robustly without CORS preflight blocking.
  */
 export const sendResultsToGoogleSheets = async (
   user: UserProfile, 
@@ -38,34 +38,37 @@ export const sendResultsToGoogleSheets = async (
     return;
   }
 
-  const timestamp = new Date().toLocaleString('es-ES', { 
-    timeZoneName: 'short', 
-    dateStyle: 'full', 
-    timeStyle: 'medium' 
-  });
+  // Fallback for locale string if environment is restricted
+  let dateStr = new Date().toISOString();
+  try {
+    dateStr = new Date().toLocaleString('es-ES', { 
+      timeZoneName: 'short', 
+      dateStyle: 'full', 
+      timeStyle: 'medium' 
+    });
+  } catch (e) {
+    // Keep ISO string if locale fails
+  }
 
-  // Prepare data as a standard JSON object
-  const dataPayload = {
-    date: timestamp,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    score: score,
-    total: total
-  };
+  // Prepare data as URL parameters (application/x-www-form-urlencoded)
+  const formData = new URLSearchParams();
+  formData.append('date', dateStr);
+  formData.append('firstName', user.firstName || '');
+  formData.append('lastName', user.lastName || '');
+  formData.append('email', user.email || '');
+  formData.append('score', String(score));
+  formData.append('total', String(total));
 
   try {
     await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
       method: 'POST',
-      mode: 'no-cors', // Essential for Google Apps Script
+      mode: 'no-cors', // Essential for Google Apps Script to accept the request from another domain
       headers: {
-        // "text/plain" is the secret to avoid CORS Preflight checks
-        'Content-Type': 'text/plain', 
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      // We send a JSON string, but the browser treats it as plain text
-      body: JSON.stringify(dataPayload)
+      body: formData.toString()
     });
-    console.log('Data sent to Google Sheets');
+    console.log('Data sent to Google Sheets via Form Post');
   } catch (error) {
     console.error('Error sending data to Google Sheets:', error);
   }

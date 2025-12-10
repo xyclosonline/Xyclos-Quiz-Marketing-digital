@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { UserProfile, AppState, Question } from './types';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { QuizScreen } from './components/QuizScreen';
